@@ -2,11 +2,11 @@
 
 Companion to [Geodesic Retrieval over Learned Manifolds](https://github.com/benolenick/geodesic_retrieval).
 
-Standard retrieval systems rank facts by individual relevance to a query. But when the answer is a **sequence of connected facts**, individual relevance isn't enough — you need facts that connect to each other, not just to the query. We model fact-to-fact connections as an energy landscape and use Boltzmann statistics to re-rank candidates so that **coherent chains rise to the top**.
+Standard retrieval systems rank facts by individual relevance to a query. But when the answer is a **sequence of connected facts**, individual relevance isn't enough, you need facts that connect to each other, not just to the query. We model fact-to-fact connections as an energy landscape and use Boltzmann statistics to re-rank candidates so that **coherent chains rise to the top**.
 
 ## The problem
 
-Ask a vector database for "how to diagnose intermittent brake failure" and you'll get 10 facts about brakes. But the *answer* is a procedure: check brake fluid level → inspect pad wear → test caliper slides → check ABS sensor → road test. Each step connects to the next — but FAISS doesn't know that. It ranks by similarity to the query, not by how facts connect to form a coherent sequence.
+Ask a vector database for "how to diagnose intermittent brake failure" and you'll get 10 facts about brakes. But the *answer* is a procedure: check brake fluid level → inspect pad wear → test caliper slides → check ABS sensor → road test. Each step connects to the next, but FAISS doesn't know that. It ranks by similarity to the query, not by how facts connect to form a coherent sequence.
 
 This applies everywhere knowledge forms chains:
 - **Medical**: history → exam → labs → imaging → differential → treatment
@@ -16,7 +16,7 @@ This applies everywhere knowledge forms chains:
 
 ## The insight (from protein folding)
 
-Protein folding finds the correct 3D structure by minimizing free energy across the entire chain of amino acids. We apply the same principle: **the best retrieval result is the one where the entire sequence of facts has minimum energy** — meaning every fact connects strongly to its neighbors in the chain.
+Protein folding finds the correct 3D structure by minimizing free energy across the entire chain of amino acids. We apply the same principle: **the best retrieval result is the one where the entire sequence of facts has minimum energy**, meaning every fact connects strongly to its neighbors in the chain.
 
 | Concept | Biology | Our Implementation |
 |---------|---------|-------------------|
@@ -28,12 +28,12 @@ Protein folding finds the correct 3D structure by minimizing free energy across 
 ## How it works
 
 1. **Retrieve candidates** from any backend (FAISS, Elasticsearch, whatever)
-2. **Build pairwise energy matrix** — how well does each pair of facts connect?
+2. **Build pairwise energy matrix**, how well does each pair of facts connect?
    - Learned logistic regression on concatenated embeddings (ROC AUC = 0.91)
    - Explicit relationship edges (enables / requires / follows)
    - Co-occurrence statistics (which facts appear together in known procedures)
 3. **Beam search** for minimum-energy paths through the candidate set
-4. **Boltzmann re-ranking** — P(path) = e^(-E/T) / Z over the path ensemble. Facts appearing in low-energy paths get boosted.
+4. **Boltzmann re-ranking**, P(path) = e^(-E/T) / Z over the path ensemble. Facts appearing in low-energy paths get boosted.
 
 The result: chain steps cluster together and rise above distractors, even when distractors had higher individual relevance scores.
 
@@ -82,7 +82,7 @@ Evaluated on a cybersecurity knowledge base (75,867 facts) as a test domain, sin
 | Constraint bypass | 69% | 71% | ~Equal |
 | Cross-domain | 63% | 67% | ~Equal |
 
-A lightweight query router selects the best backend per query type — no LLM needed for routing.
+A lightweight query router selects the best backend per query type, no LLM needed for routing.
 
 ## Repository Structure
 
@@ -97,7 +97,7 @@ eval/
   temp_sweep.py                # Boltzmann temperature parameter sweep
   test_learned_energy.py       # Learned energy function evaluation
 examples/
-  energy_rerank_example.py     # Standalone demo — no dependencies needed
+  energy_rerank_example.py     # Standalone demo, no dependencies needed
 paper/
   paper2_boltzmann.md          # Paper (markdown)
   Boltzmann_ReRanking_Paper.docx  # Paper (formatted)
@@ -126,10 +126,10 @@ See `examples/energy_rerank_example.py` for a complete working implementation.
 
 ## Related work
 
-- [Geodesic Retrieval (companion paper)](https://github.com/benolenick/geodesic_retrieval) — manifold geometry approach
-- [PropRAG](https://arxiv.org/abs/2504.18070) — beam search over proposition paths (no energy scoring)
-- [RAGRouter](https://arxiv.org/abs/2505.23052) — learned query routing for RAG
-- [RouterRetriever](https://arxiv.org/abs/2409.02685) — routing over expert embedding models
+- [Geodesic Retrieval (companion paper)](https://github.com/benolenick/geodesic_retrieval), manifold geometry approach
+- [PropRAG](https://arxiv.org/abs/2504.18070), beam search over proposition paths (no energy scoring)
+- [RAGRouter](https://arxiv.org/abs/2505.23052), learned query routing for RAG
+- [RouterRetriever](https://arxiv.org/abs/2409.02685), routing over expert embedding models
 
 ## Requirements
 
